@@ -33,8 +33,6 @@ const AddProducts = () => {
       uploadTask.on(
         "state_changed",
         (snapshot) => {
-          // Observe state change events such as progress, pause, and resume
-          // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
           const progress =
             (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
           console.log("Upload is " + progress + "% done");
@@ -47,6 +45,7 @@ const AddProducts = () => {
               break;
             default:
               console.log("Upload is done");
+              break;
           }
         },
         () => {
@@ -55,7 +54,7 @@ const AddProducts = () => {
         () => {
           getDownloadURL(uploadTask.snapshot.ref).then(async (downloadURL) => {
             await addDoc(docRef, {
-              title: enteredTitle,
+              productName: enteredTitle,
               shortDesc: enteredShortDesc,
               description: enteredDescription,
               category: enteredCategory,
@@ -134,6 +133,7 @@ const AddProducts = () => {
                         onChange={(e) => setEnteredCategory(e.target.value)}
                         required
                       >
+                        <option>Please Select</option>
                         <option value="chair">Chair</option>
                         <option value="sofa">Sofa</option>
                         <option value="mobile">Mobile</option>

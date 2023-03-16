@@ -6,13 +6,17 @@ import { useDispatch } from "react-redux";
 import { cartActions } from "../redux/slices/cartSlice";
 import { toast } from "react-toastify";
 
-import products from "../assets/data/products";
 import ProductList from "../components/UI/ProductList";
 import Helmet from "../components/Helmet/Helmet";
 import CommonSection from "../components/UI/CommonSection";
 import "../styles/product-details.css";
 
+import { db } from "../firebase.config";
+import { doc, getDoc } from "firebase/firestore";
+import useGetData from "../custom-hooks/useGetData";
+
 const ProductDetails = () => {
+  const [product, setProduct] = useState({});
   const [tab, setTab] = useState("desc");
   const [rating, setRating] = useState(null);
   const reviewUser = useRef("");
@@ -20,9 +24,35 @@ const ProductDetails = () => {
   const dispatch = useDispatch();
 
   const { id } = useParams();
-  const product = products.find((item) => item.id === id);
 
-  const { imgUrl, productName, price, avgRating, reviews, description, shortDesc, category } = product;
+  const { data: products } = useGetData("products");
+
+  const docRef = doc(db, "products", id);
+
+  useEffect(() => {
+    const getProduct = async () => {
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        setProduct(docSnap.data());
+      } else {
+        console.log("No product");
+      }
+    };
+
+    getProduct();
+  }, []);
+
+  const {
+    imgUrl,
+    productName,
+    price,
+    // avgRating,
+    // reviews,
+    description,
+    shortDesc,
+    category,
+  } = product;
 
   const relatedProducts = products.filter((item) => item.category === category);
 
@@ -88,16 +118,18 @@ const ProductDetails = () => {
                       <i class="ri-star-half-s-fill"></i>
                     </span>
                   </div>
-                  <p>
-                    (<span>{avgRating}</span> ratings)
-                  </p>
+                  <p>{/* (<span>{avgRating}</span> ratings) */}</p>
                 </div>
                 <div className="d-flex align-items-center gap-5">
                   <span className="product__price">${price}</span>
-                  <span>Category {category.toLocaleLowerCase()}</span>
+                  <span>Category {category}</span>
                 </div>
                 <p className="mt-3 mb-5">{shortDesc}</p>
-                <motion.button whileTap={{ scale: 1.2 }} className="buy__btn" onClick={addToCart}>
+                <motion.button
+                  whileTap={{ scale: 1.2 }}
+                  className="buy__btn"
+                  onClick={addToCart}
+                >
                   Add To Cart
                 </motion.button>
               </div>
@@ -111,11 +143,17 @@ const ProductDetails = () => {
           <Row>
             <Col lg="12">
               <div className="tab__wrapper d-flex align-items-center gap-5">
-                <h6 className={`${tab === "desc" ? "active__tab" : ""}`} onClick={() => setTab("desc")}>
+                <h6
+                  className={`${tab === "desc" ? "active__tab" : ""}`}
+                  onClick={() => setTab("desc")}
+                >
                   Description
                 </h6>
-                <h6 className={`${tab === "rev" ? "active__tab" : ""}`} onClick={() => setTab("rev")}>
-                  Reviews ({reviews.length})
+                <h6
+                  className={`${tab === "rev" ? "active__tab" : ""}`}
+                  onClick={() => setTab("rev")}
+                >
+                  Reviews
                 </h6>
               </div>
               {tab === "desc" ? (
@@ -125,7 +163,7 @@ const ProductDetails = () => {
               ) : (
                 <div className="product__review mt-5">
                   <div className="review__wrapper">
-                    <ul>
+                    {/* <ul>
                       {reviews?.map((item, index) => (
                         <li className="mb-4" key={index}>
                           <h6>Martin</h6>
@@ -133,34 +171,64 @@ const ProductDetails = () => {
                           <p>{item.text}</p>
                         </li>
                       ))}
-                    </ul>
+                    </ul> */}
                     <div className="review__form">
                       <h4>Leave you experience</h4>
                       <form action="" onSubmit={submitHandler}>
                         <div className="form__group">
-                          <input type="text" placeholder="Enter name" ref={reviewUser} required />
+                          <input
+                            type="text"
+                            placeholder="Enter name"
+                            ref={reviewUser}
+                            required
+                          />
                         </div>
                         <div className="form__group d-flex align-items-center gap-5 rating__group">
-                          <motion.span whileTap={{ scale: 1.2 }} onClick={() => setRating(1)}>
+                          <motion.span
+                            whileTap={{ scale: 1.2 }}
+                            onClick={() => setRating(1)}
+                          >
                             1<i class="ri-star-s-fill"></i>
                           </motion.span>
-                          <motion.span whileTap={{ scale: 1.2 }} onClick={() => setRating(2)}>
+                          <motion.span
+                            whileTap={{ scale: 1.2 }}
+                            onClick={() => setRating(2)}
+                          >
                             2<i class="ri-star-s-fill"></i>
                           </motion.span>
-                          <motion.span whileTap={{ scale: 1.2 }} onClick={() => setRating(3)}>
+                          <motion.span
+                            whileTap={{ scale: 1.2 }}
+                            onClick={() => setRating(3)}
+                          >
                             3<i class="ri-star-s-fill"></i>
                           </motion.span>
-                          <motion.span whileTap={{ scale: 1.2 }} onClick={() => setRating(4)}>
+                          <motion.span
+                            whileTap={{ scale: 1.2 }}
+                            onClick={() => setRating(4)}
+                          >
                             4<i class="ri-star-s-fill"></i>
                           </motion.span>
-                          <motion.span whileTap={{ scale: 1.2 }} onClick={() => setRating(5)}>
+                          <motion.span
+                            whileTap={{ scale: 1.2 }}
+                            onClick={() => setRating(5)}
+                          >
                             5<i class="ri-star-s-fill"></i>
                           </motion.span>
                         </div>
                         <div className="form__group">
-                          <textarea rows={4} type="text" placeholder="Review Message..." ref={reviewMsg} required />
+                          <textarea
+                            rows={4}
+                            type="text"
+                            placeholder="Review Message..."
+                            ref={reviewMsg}
+                            required
+                          />
                         </div>
-                        <motion.button whileTap={{ scale: 1.2 }} type="submit" className="buy__btn">
+                        <motion.button
+                          whileTap={{ scale: 1.2 }}
+                          type="submit"
+                          className="buy__btn"
+                        >
                           Submit
                         </motion.button>
                       </form>
